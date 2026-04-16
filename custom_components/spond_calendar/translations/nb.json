@@ -1,0 +1,28 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Koble til Spond",
+        "description": "Skriv inn påloggingsinformasjonen for Spond-kontoen din.",
+        "data": {
+          "email": "E-post",
+          "password": "Passord"
+        }
+      },
+      "select_group": {
+        "title": "Velg gruppe",
+        "description": "Velg Spond-gruppen du vil vise som kalender.",
+        "data": {
+          "group_id": "Gruppe"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kunne ikke koble til Spond. Sjekk påloggingsinformasjonen.",
+      "no_groups": "Fant ingen grupper for denne kontoen."
+    },
+    "abort": {
+      "already_configured": "Denne gruppen er allerede konfigurert."
+    }
+  }
+}

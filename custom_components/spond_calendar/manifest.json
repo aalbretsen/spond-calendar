@@ -1,0 +1,12 @@
+{
+  "domain": "spond_calendar",
+  "name": "Spond Calendar",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/your-repo/spond-calendar",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/your-repo/spond-calendar/issues",
+  "requirements": ["spond>=1.2.0"],
+  "version": "1.0.0"
+}

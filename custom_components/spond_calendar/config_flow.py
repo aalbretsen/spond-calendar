@@ -1,0 +1,118 @@
+"""Config flow for Spond Calendar integration."""
+from __future__ import annotations
+
+import asyncio
+import logging
+from typing import Any
+
+import voluptuous as vol
+
+from homeassistant import config_entries
+from homeassistant.data_entry_flow import FlowResult
+
+from .const import (
+    CONF_GROUP_ID,
+    CONF_GROUP_NAME,
+    CONF_SPOND_EMAIL,
+    CONF_SPOND_PASSWORD,
+    DOMAIN,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+STEP_USER_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_SPOND_EMAIL): str,
+        vol.Required(CONF_SPOND_PASSWORD): str,
+    }
+)
+
+
+class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Spond Calendar."""
+
+    VERSION = 1
+
+    def __init__(self) -> None:
+        """Initialise the config flow."""
+        self._email: str | None = None
+        self._password: str | None = None
+        self._groups: list[dict[str, Any]] = []
+
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the initial credentials step."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            self._email = user_input[CONF_SPOND_EMAIL]
+            self._password = user_input[CONF_SPOND_PASSWORD]
+
+            try:
+                self._groups = await self._fetch_groups(
+                    self._email, self._password
+                )
+            except Exception:  # noqa: BLE001
+                _LOGGER.exception("Failed to connect to Spond")
+                errors["base"] = "cannot_connect"
+            else:
+                if not self._groups:
+                    errors["base"] = "no_groups"
+                else:
+                    return await self.async_step_select_group()
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=STEP_USER_DATA_SCHEMA,
+            errors=errors,
+        )
+
+    async def async_step_select_group(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the group selection step."""
+        if user_input is not None:
+            group_id = user_input[CONF_GROUP_ID]
+            group_name = next(
+                (g["name"] for g in self._groups if g["id"] == group_id),
+                group_id,
+            )
+
+            # Prevent duplicate entries for the same group
+            await self.async_set_unique_id(group_id)
+            self._abort_if_unique_id_configured()
+
+            return self.async_create_entry(
+                title=f"Spond – {group_name}",
+                data={
+                    CONF_SPOND_EMAIL: self._email,
+                    CONF_SPOND_PASSWORD: self._password,
+                    CONF_GROUP_ID: group_id,
+                    CONF_GROUP_NAME: group_name,
+                },
+            )
+
+        group_options = {g["id"]: g["name"] for g in self._groups}
+
+        return self.async_show_form(
+            step_id="select_group",
+            data_schema=vol.Schema(
+                {vol.Required(CONF_GROUP_ID): vol.In(group_options)}
+            ),
+        )
+
+    @staticmethod
+    async def _fetch_groups(email: str, password: str) -> list[dict[str, Any]]:
+        """Log in to Spond and return available groups."""
+        from spond import spond as spond_module  # noqa: PLC0415
+
+        client = spond_module.Spond(username=email, password=password)
+        try:
+            groups = await client.get_groups()
+            return [
+                {"id": g["id"], "name": g["name"]}
+                for g in groups
+            ]
+        finally:
+            await client.clientsession.close()

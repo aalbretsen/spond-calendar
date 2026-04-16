@@ -1,0 +1,28 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Spond",
+        "description": "Enter your Spond account credentials.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "select_group": {
+        "title": "Select Group",
+        "description": "Choose the Spond group whose events you want as a calendar.",
+        "data": {
+          "group_id": "Group"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Spond. Check your credentials.",
+      "no_groups": "No groups found for this account."
+    },
+    "abort": {
+      "already_configured": "This group is already configured."
+    }
+  }
+}
