@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_GROUP_ID,
+    CONF_INCLUDE_PLANNED,
     CONF_SPOND_EMAIL,
     CONF_SPOND_PASSWORD,
     DEFAULT_DAYS_AHEAD,
@@ -42,10 +43,16 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
             name=DOMAIN,
             update_interval=timedelta(minutes=DEFAULT_SCAN_INTERVAL_MINUTES),
         )
+        self._entry = entry
         self._email: str = entry.data[CONF_SPOND_EMAIL]
         self._password: str = entry.data[CONF_SPOND_PASSWORD]
         self._group_id: str = entry.data[CONF_GROUP_ID]
         self._client: Any | None = None
+
+    @property
+    def include_planned(self) -> bool:
+        """Whether to include planned/scheduled events."""
+        return self._entry.options.get(CONF_INCLUDE_PLANNED, False)
 
     async def _ensure_client(self) -> Any:
         """Lazily create (or re-create) the Spond client."""
@@ -68,6 +75,7 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
 
             events: list[dict[str, Any]] = await client.get_events(
                 group_id=self._group_id,
+                include_scheduled=self.include_planned,
                 min_end=min_date,
                 max_end=max_date,
                 max_events=200,
@@ -101,8 +109,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     entry.runtime_data = coordinator
 
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def _async_options_updated(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> None:
+    """Reload the integration when options change."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

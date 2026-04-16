@@ -13,7 +13,8 @@
         "title": "Velg gruppe",
         "description": "Velg Spond-gruppen du vil vise som kalender.",
         "data": {
-          "group_id": "Gruppe"
+          "group_id": "Gruppe",
+          "include_planned": "Inkluder planlagte hendelser (ikke åpnet for påmelding enda)"
         }
       }
     },
@@ -23,6 +24,16 @@
     },
     "abort": {
       "already_configured": "Denne gruppen er allerede konfigurert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Spond kalenderinnstillinger",
+        "data": {
+          "include_planned": "Inkluder planlagte hendelser (ikke åpnet for påmelding enda)"
+        }
+      }
     }
   }
 }

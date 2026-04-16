@@ -1,7 +1,6 @@
 """Config flow for Spond Calendar integration."""
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 
@@ -13,6 +12,7 @@ from homeassistant.data_entry_flow import FlowResult
 from .const import (
     CONF_GROUP_ID,
     CONF_GROUP_NAME,
+    CONF_INCLUDE_PLANNED,
     CONF_SPOND_EMAIL,
     CONF_SPOND_PASSWORD,
     DOMAIN,
@@ -74,6 +74,7 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the group selection step."""
         if user_input is not None:
             group_id = user_input[CONF_GROUP_ID]
+            include_planned = user_input.get(CONF_INCLUDE_PLANNED, False)
             group_name = next(
                 (g["name"] for g in self._groups if g["id"] == group_id),
                 group_id,
@@ -91,6 +92,9 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_GROUP_ID: group_id,
                     CONF_GROUP_NAME: group_name,
                 },
+                options={
+                    CONF_INCLUDE_PLANNED: include_planned,
+                },
             )
 
         group_options = {g["id"]: g["name"] for g in self._groups}
@@ -98,9 +102,19 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="select_group",
             data_schema=vol.Schema(
-                {vol.Required(CONF_GROUP_ID): vol.In(group_options)}
+                {
+                    vol.Required(CONF_GROUP_ID): vol.In(group_options),
+                    vol.Optional(CONF_INCLUDE_PLANNED, default=False): bool,
+                }
             ),
         )
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> SpondCalendarOptionsFlow:
+        """Return the options flow handler."""
+        return SpondCalendarOptionsFlow(config_entry)
 
     @staticmethod
     async def _fetch_groups(email: str, password: str) -> list[dict[str, Any]]:
@@ -116,3 +130,32 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ]
         finally:
             await client.clientsession.close()
+
+
+class SpondCalendarOptionsFlow(config_entries.OptionsFlow):
+    """Handle options for an existing Spond Calendar entry."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialise the options flow."""
+        self._config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        current = self._config_entry.options.get(CONF_INCLUDE_PLANNED, False)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_INCLUDE_PLANNED,
+                        default=current,
+                    ): bool,
+                }
+            ),
+        )

@@ -13,7 +13,8 @@
         "title": "Select Group",
         "description": "Choose the Spond group whose events you want as a calendar.",
         "data": {
-          "group_id": "Group"
+          "group_id": "Group",
+          "include_planned": "Include planned events (not yet open for responses)"
         }
       }
     },
@@ -23,6 +24,16 @@
     },
     "abort": {
       "already_configured": "This group is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Spond Calendar Options",
+        "data": {
+          "include_planned": "Include planned events (not yet open for responses)"
+        }
+      }
     }
   }
 }
