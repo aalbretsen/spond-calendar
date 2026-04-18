@@ -14,7 +14,13 @@
         "description": "Choose the Spond group whose events you want as a calendar.",
         "data": {
           "group_id": "Group",
-          "include_planned": "Include planned events (not yet open for responses)"
+          "include_planned": "Include planned events (not yet open for responses)",
+          "show_unanswered_indicator": "Mark unanswered invites in the calendar",
+          "unanswered_prefix": "Prefix for unanswered events",
+          "hide_declined": "Hide events you have declined"
+        },
+        "data_description": {
+          "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite. Defaults to ❓"
         }
       }
     },
@@ -31,7 +37,13 @@
       "init": {
         "title": "Spond Calendar Options",
         "data": {
-          "include_planned": "Include planned events (not yet open for responses)"
+          "include_planned": "Include planned events (not yet open for responses)",
+          "show_unanswered_indicator": "Mark unanswered invites in the calendar",
+          "unanswered_prefix": "Prefix for unanswered events",
+          "hide_declined": "Hide events you have declined"
+        },
+        "data_description": {
+          "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite. Defaults to ❓"
         }
       }
     }

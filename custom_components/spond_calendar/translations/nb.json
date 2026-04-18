@@ -14,7 +14,13 @@
         "description": "Velg Spond-gruppen du vil vise som kalender.",
         "data": {
           "group_id": "Gruppe",
-          "include_planned": "Inkluder planlagte hendelser (ikke åpnet for påmelding enda)"
+          "include_planned": "Inkluder planlagte hendelser (ikke åpnet for påmelding enda)",
+          "show_unanswered_indicator": "Merk ubesvarte invitasjoner i kalenderen",
+          "unanswered_prefix": "Prefiks for ubesvarte hendelser",
+          "hide_declined": "Skjul hendelser du har takket nei til"
+        },
+        "data_description": {
+          "unanswered_prefix": "Tekst som legges foran hendelsestittelen når du har en åpen, ubesvart invitasjon. Standard er ❓"
         }
       }
     },
@@ -31,7 +37,13 @@
       "init": {
         "title": "Spond kalenderinnstillinger",
         "data": {
-          "include_planned": "Inkluder planlagte hendelser (ikke åpnet for påmelding enda)"
+          "include_planned": "Inkluder planlagte hendelser (ikke åpnet for påmelding enda)",
+          "show_unanswered_indicator": "Merk ubesvarte invitasjoner i kalenderen",
+          "unanswered_prefix": "Prefiks for ubesvarte hendelser",
+          "hide_declined": "Skjul hendelser du har takket nei til"
+        },
+        "data_description": {
+          "unanswered_prefix": "Tekst som legges foran hendelsestittelen når du har en åpen, ubesvart invitasjon. Standard er ❓"
         }
       }
     }

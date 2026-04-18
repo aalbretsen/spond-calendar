@@ -1,29 +1,27 @@
-<p align="center">
-  <img src="custom_components/spond_calendar/images/logo.png" alt="Spond Calendar" />
-</p>
 
-<h3 align="center">Spond Calendar for Home Assistant</h3>
-
-<p align="center">
-  A HACS-compatible custom integration that exposes your
-  <a href="https://spond.com/">Spond</a> group events as a native calendar in Home Assistant.<br/>
-  Built on top of the excellent <a href="https://github.com/Olen/Spond">Olen/Spond</a> unofficial Python library.
-</p>
+# Spond Calendar for Home Assistant
+[![Spond Calendar Logo](https://github.com/aalbretsen/spond-calendar/blob/main/custom_components/spond_calendar/brand/logo.png)](https://github.com/aalbretsen/spond-calendar)
 
 ---
 
-[![HACS][hacs-badge]][hacs-url]
-[![Release][release-badge]][release-url]
-[![License][license-badge]](LICENSE)
+[![HACS](https://img.shields.io/badge/HACS-Custom-blue.svg)](https://hacs.xyz)
+[![Release](https://img.shields.io/github/v/release/aalbretsen/spond-calendar)](https://github.com/aalbretsen/spond-calendar/releases)
+[![License](https://img.shields.io/github/license/aalbretsen/spond-calendar)](https://github.com/aalbretsen/spond-calendar/blob/main/LICENSE)
+
+A HACS-compatible custom integration that exposes your
+[Spond](https://spond.com/) group events as a native calendar in Home Assistant.  
+Built on top of the excellent [Olen/Spond](https://github.com/Olen/Spond) unofficial Python library.
 
 ## Features
 
-- **UI-based setup** — enter your Spond credentials, pick a group from a dropdown, done.
-- **Native calendar entity** — shows up in the Calendar dashboard, calendar cards, and works with calendar automations/triggers.
-- **Polling** — refreshes events every 15 minutes.
-- **Event window** — fetches 30 days of history and 90 days ahead.
-- **Multiple groups** — add the integration once per group; each gets its own calendar entity.
-- **Event details** — summary, start/end times, description, and location are all mapped.
+* **UI-based setup** — enter your Spond credentials, pick a group from a dropdown, done.
+* **Native calendar entity** — shows up in the Calendar dashboard, calendar cards, and works with calendar automations/triggers.
+* **Polling** — refreshes events every 15 minutes.
+* **Event window** — fetches 30 days of history and 90 days ahead.
+* **Multiple groups** — add the integration once per group; each gets its own calendar entity.
+* **Event details** — summary, start/end times, description, and location are all mapped.
+* **Unanswered invite indicator** — open invites you haven't responded to are prefixed with a configurable marker (default: `❓ `) so they stand out in your calendar.
+* **Hide declined events** — optionally suppress events you've already declined.
 
 ## Installation
 
@@ -46,9 +44,22 @@
 2. Search for **Spond Calendar**.
 3. Enter your Spond email and password.
 4. Select the group you want to expose as a calendar.
-5. Done — the calendar entity appears as `calendar.spond_<group_name>`.
+5. Configure options (unanswered indicator, hide declined events).
+6. Done — the calendar entity appears as `calendar.spond_<group_name>`.
 
 To add more groups, repeat the process.
+
+## Configuration options
+
+| Option | Description | Default |
+| --- | --- | --- |
+| Email | Your Spond login email | — |
+| Password | Your Spond password | — |
+| Group | The Spond group to expose | — |
+| Include planned events | Show events not yet open for RSVP | Off |
+| Mark unanswered invites | Prefix unanswered event titles with an indicator | On |
+| Prefix for unanswered events | Text prepended to event title when invite is open | `❓ ` |
+| Hide declined events | Suppress events you have declined | Off |
 
 ## Using in automations
 
@@ -67,14 +78,6 @@ automation:
           message: "Starts at {{ trigger.calendar_event.start }} — {{ trigger.calendar_event.location }}"
 ```
 
-## Configuration options
-
-| Option | Description |
-|--------|-------------|
-| Email | Your Spond login email |
-| Password | Your Spond password |
-| Group | The Spond group to expose (selected from a dropdown) |
-
 ## Architecture
 
 ```
@@ -91,7 +94,9 @@ Spond Cloud API
 ┌─────────────────────────┐
 │  SpondCalendarEntity     │  CalendarEntity — maps Spond events → CalendarEvent
 └──────────┬──────────────┘
-           │
+           │  • Checks RSVP status (accepted / declined / unanswered)
+           │  • Applies unanswered-invite prefix to event title
+           │  • Optionally hides declined events
            ▼
    HA Calendar dashboard, automations, triggers
 ```
@@ -100,21 +105,19 @@ Spond Cloud API
 
 This integration depends on the [spond](https://pypi.org/project/spond/) library (≥ 1.2.0), which is installed automatically by Home Assistant.
 
+## Home Assistant version requirement
+
+This integration requires **Home Assistant 2026.3.0 or newer** in order to display the integration icon correctly in the Settings → Integrations UI. Older HA versions will still work, but will show a placeholder icon.
+
 ## Disclaimer
 
 This integration uses **unofficial, reverse-engineered APIs**. Spond does not offer a public API. Use at your own risk — the API may change without notice.
 
 ## Credits
 
-- **[Olen/Spond](https://github.com/Olen/Spond)** by [Olen](https://github.com/Olen) — the unofficial Python library for the Spond API that this integration depends on for all communication with Spond's servers. Without this library, this integration would not exist.
-- **[Claude](https://claude.ai/) by [Anthropic](https://www.anthropic.com/)** — this integration was written with the assistance of Claude (Opus), Anthropic's AI assistant, in an interactive session covering architecture research, API investigation, and code generation.
+* **[Olen/Spond](https://github.com/Olen/Spond)** by [Olen](https://github.com/Olen) — the unofficial Python library for the Spond API that this integration depends on for all communication with Spond's servers. Without this library, this integration would not exist.
+* **[Claude](https://claude.ai/) by [Anthropic](https://www.anthropic.com/)** — this integration was written with the assistance of Claude, Anthropic's AI assistant.
 
 ## License
 
 MIT
-
-[hacs-badge]: https://img.shields.io/badge/HACS-Custom-blue.svg
-[hacs-url]: https://hacs.xyz
-[release-badge]: https://img.shields.io/github/v/release/aalbretsen/spond-calendar
-[release-url]: https://github.com/aalbretsen/spond-calendar/releases
-[license-badge]: https://img.shields.io/github/license/aalbretsen/spond-calendar
