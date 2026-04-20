@@ -13,12 +13,18 @@ from .const import (
     CONF_GROUP_ID,
     CONF_GROUP_NAME,
     CONF_HIDE_DECLINED,
+    CONF_HIDE_DECLINED_REQUIRE_ALL,
     CONF_INCLUDE_PLANNED,
     CONF_SHOW_UNANSWERED_INDICATOR,
     CONF_SPOND_EMAIL,
     CONF_SPOND_PASSWORD,
+    CONF_STRIP_EMOJI,
     CONF_UNANSWERED_PREFIX,
+    CONF_UNANSWERED_REQUIRE_ALL,
+    DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
+    DEFAULT_STRIP_EMOJI,
     DEFAULT_UNANSWERED_PREFIX,
+    DEFAULT_UNANSWERED_REQUIRE_ALL,
     DOMAIN,
 )
 
@@ -90,7 +96,14 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_INCLUDE_PLANNED: user_input.get(CONF_INCLUDE_PLANNED, False),
                     CONF_SHOW_UNANSWERED_INDICATOR: user_input.get(CONF_SHOW_UNANSWERED_INDICATOR, True),
                     CONF_UNANSWERED_PREFIX: user_input.get(CONF_UNANSWERED_PREFIX, DEFAULT_UNANSWERED_PREFIX),
+                    CONF_UNANSWERED_REQUIRE_ALL: user_input.get(
+                        CONF_UNANSWERED_REQUIRE_ALL, DEFAULT_UNANSWERED_REQUIRE_ALL
+                    ),
                     CONF_HIDE_DECLINED: user_input.get(CONF_HIDE_DECLINED, False),
+                    CONF_HIDE_DECLINED_REQUIRE_ALL: user_input.get(
+                        CONF_HIDE_DECLINED_REQUIRE_ALL, DEFAULT_HIDE_DECLINED_REQUIRE_ALL
+                    ),
+                    CONF_STRIP_EMOJI: user_input.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI),
                 },
             )
 
@@ -104,7 +117,16 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional(CONF_INCLUDE_PLANNED, default=False): bool,
                     vol.Optional(CONF_SHOW_UNANSWERED_INDICATOR, default=True): bool,
                     vol.Optional(CONF_UNANSWERED_PREFIX, default=DEFAULT_UNANSWERED_PREFIX): str,
+                    vol.Optional(
+                        CONF_UNANSWERED_REQUIRE_ALL,
+                        default=DEFAULT_UNANSWERED_REQUIRE_ALL,
+                    ): bool,
                     vol.Optional(CONF_HIDE_DECLINED, default=False): bool,
+                    vol.Optional(
+                        CONF_HIDE_DECLINED_REQUIRE_ALL,
+                        default=DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
+                    ): bool,
+                    vol.Optional(CONF_STRIP_EMOJI, default=DEFAULT_STRIP_EMOJI): bool,
                 }
             ),
         )
@@ -146,7 +168,24 @@ class SpondCalendarOptionsFlow(config_entries.OptionsFlow):
                     vol.Optional(CONF_INCLUDE_PLANNED, default=opts.get(CONF_INCLUDE_PLANNED, False)): bool,
                     vol.Optional(CONF_SHOW_UNANSWERED_INDICATOR, default=opts.get(CONF_SHOW_UNANSWERED_INDICATOR, True)): bool,
                     vol.Optional(CONF_UNANSWERED_PREFIX, default=opts.get(CONF_UNANSWERED_PREFIX, DEFAULT_UNANSWERED_PREFIX)): str,
+                    vol.Optional(
+                        CONF_UNANSWERED_REQUIRE_ALL,
+                        default=opts.get(
+                            CONF_UNANSWERED_REQUIRE_ALL, DEFAULT_UNANSWERED_REQUIRE_ALL
+                        ),
+                    ): bool,
                     vol.Optional(CONF_HIDE_DECLINED, default=opts.get(CONF_HIDE_DECLINED, False)): bool,
+                    vol.Optional(
+                        CONF_HIDE_DECLINED_REQUIRE_ALL,
+                        default=opts.get(
+                            CONF_HIDE_DECLINED_REQUIRE_ALL,
+                            DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_STRIP_EMOJI,
+                        default=opts.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI),
+                    ): bool,
                 }
             ),
         )

@@ -13,15 +13,21 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import (
     CONF_GROUP_ID,
     CONF_HIDE_DECLINED,
+    CONF_HIDE_DECLINED_REQUIRE_ALL,
     CONF_INCLUDE_PLANNED,
     CONF_SHOW_UNANSWERED_INDICATOR,
     CONF_SPOND_EMAIL,
     CONF_SPOND_PASSWORD,
+    CONF_STRIP_EMOJI,
     CONF_UNANSWERED_PREFIX,
+    CONF_UNANSWERED_REQUIRE_ALL,
     DEFAULT_DAYS_AHEAD,
     DEFAULT_DAYS_BACK,
+    DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
     DEFAULT_SCAN_INTERVAL_MINUTES,
+    DEFAULT_STRIP_EMOJI,
     DEFAULT_UNANSWERED_PREFIX,
+    DEFAULT_UNANSWERED_REQUIRE_ALL,
     DOMAIN,
 )
 
@@ -46,7 +52,7 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
         self._password: str = entry.data[CONF_SPOND_PASSWORD]
         self._group_id: str = entry.data[CONF_GROUP_ID]
         self._client: Any | None = None
-        self._my_person_id: str | None = None
+        self._my_person_ids: list[str] = []
 
     @property
     def include_planned(self) -> bool:
@@ -65,8 +71,24 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
         return self._entry.options.get(CONF_HIDE_DECLINED, False)
 
     @property
-    def my_person_id(self) -> str | None:
-        return self._my_person_id
+    def unanswered_require_all(self) -> bool:
+        return self._entry.options.get(
+            CONF_UNANSWERED_REQUIRE_ALL, DEFAULT_UNANSWERED_REQUIRE_ALL
+        )
+
+    @property
+    def hide_declined_require_all(self) -> bool:
+        return self._entry.options.get(
+            CONF_HIDE_DECLINED_REQUIRE_ALL, DEFAULT_HIDE_DECLINED_REQUIRE_ALL
+        )
+
+    @property
+    def strip_emoji(self) -> bool:
+        return self._entry.options.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI)
+
+    @property
+    def my_person_ids(self) -> list[str]:
+        return list(self._my_person_ids)
 
     async def _ensure_client(self) -> Any:
         if self._client is None:
@@ -74,31 +96,56 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
             self._client = spond_module.Spond(username=self._email, password=self._password)
         return self._client
 
-    async def _resolve_my_person_id(self, client: Any) -> str | None:
-        # Matches the logged-in user by email against group.members[].profile.email,
-        # avoiding a separate /me API call that the library does not expose.
+    async def _resolve_my_person_ids(self, client: Any) -> list[str]:
+        """Return member IDs in the group for the user and any children they guard."""
+        my_email = self._email.lower()
+        person_ids: list[str] = []
+
+        def _add(mid: str | None) -> None:
+            if mid and mid not in person_ids:
+                person_ids.append(mid)
+
         try:
             groups = await client.get_groups()
             for group in groups:
                 if group.get("id") != self._group_id:
                     continue
+
                 for member in group.get("members", []):
-                    profile = member.get("profile", {})
-                    if profile.get("email", "").lower() == self._email.lower():
-                        person_id = member.get("id")
-                        _LOGGER.debug("Resolved Spond member ID: %s", person_id)
-                        return person_id
-            _LOGGER.debug("User %s not found in group %s members", self._email, self._group_id)
+                    member_id = member.get("id")
+                    member_profile = member.get("profile") or {}
+                    if (member_profile.get("email") or "").lower() == my_email:
+                        _add(member_id)
+                        continue
+
+                    for guardian in member.get("guardians", []) or []:
+                        g_profile = guardian.get("profile") or {}
+                        g_email = (
+                            g_profile.get("email") or guardian.get("email") or ""
+                        ).lower()
+                        if g_email and g_email == my_email:
+                            _add(member_id)
+                            break
+
+                break
+
+            _LOGGER.debug(
+                "Resolved %d Spond member ID(s) for %s in group %s: %s",
+                len(person_ids),
+                self._email,
+                self._group_id,
+                person_ids,
+            )
         except Exception:  # noqa: BLE001
-            _LOGGER.debug("Failed to resolve person ID", exc_info=True)
-        return None
+            _LOGGER.warn("Failed to resolve person IDs", exc_info=True)
+        return person_ids
 
     async def _async_update_data(self) -> list[dict[str, Any]]:
         try:
             client = await self._ensure_client()
 
-            if self._my_person_id is None:
-                self._my_person_id = await self._resolve_my_person_id(client)
+            if not self._my_person_ids:
+                self._my_person_ids = await self._resolve_my_person_ids(client)
 
             now = datetime.now(tz=timezone.utc)
             events: list[dict[str, Any]] = await client.get_events(
@@ -111,7 +158,6 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
             return events
 
         except Exception as err:
-            # Close the client so a fresh session is created on the next poll.
             await self._close_client()
             raise UpdateFailed(f"Error fetching Spond events: {err}") from err
 
@@ -122,7 +168,7 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
             except Exception:  # noqa: BLE001
                 pass
             self._client = None
-        self._my_person_id = None
+        self._my_person_ids = []
 
     async def async_shutdown(self) -> None:
         await self._close_client()
