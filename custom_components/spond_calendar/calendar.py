@@ -57,21 +57,16 @@ def _parse_event(raw: dict[str, Any], *, strip_emoji: bool = False) -> CalendarE
 
         start = _parse_dt(start_str)
         end = _parse_dt(end_str) if end_str else start
+
         summary = raw.get("heading", "Spond event")
         if strip_emoji:
             summary = _strip_emoji(summary) or "Spond event"
-
-        description_parts: list[str] = []
-        if raw.get("type"):
-            description_parts.append(raw["type"])
-        if raw.get("description"):
-            description_parts.append(raw["description"])
 
         return CalendarEvent(
             start=start,
             end=end,
             summary=summary,
-            description="\n".join(description_parts) if description_parts else None,
+            description=raw.get("description"),
             location=_extract_location(raw.get("location")),
             uid=raw.get("id"),
         )
@@ -96,6 +91,16 @@ def _extract_location(loc: dict[str, Any] | None) -> str | None:
     if loc.get("address"):
         parts.append(loc["address"])
     return ", ".join(parts) if parts else None
+
+
+def _invites_sent(raw: dict[str, Any]) -> bool:
+    invite_time = raw.get("inviteTime")
+    if not invite_time:
+        return True
+    try:
+        return _parse_dt(invite_time) <= datetime.now(tz=timezone.utc)
+    except (ValueError, TypeError):
+        return True
 
 
 def _get_rsvp_statuses(raw: dict[str, Any], person_ids: list[str]) -> list[str]:
@@ -162,7 +167,7 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
         )
 
     def _process_raw(self, raw: dict[str, Any]) -> CalendarEvent | None:
-        statuses = _get_rsvp_statuses(raw, self.coordinator.my_person_ids)
+        statuses = _get_rsvp_statuses(raw, self.coordinator.my_person_ids) if _invites_sent(raw) else []
         if self._should_hide(statuses):
             return None
         ev = _parse_event(raw, strip_emoji=self.coordinator.strip_emoji)
