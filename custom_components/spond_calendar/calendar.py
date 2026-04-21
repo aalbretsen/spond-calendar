@@ -142,7 +142,7 @@ def _parse_event(
 def _build_meetup_description(
     raw: dict[str, Any], start: datetime, language: str | None
 ) -> str | None:
-    meetup_str = raw.get("meetupTimeStamp")
+    meetup_str = raw.get("meetupTimestamp")
     if not meetup_str:
         return None
     try:
