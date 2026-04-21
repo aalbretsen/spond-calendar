@@ -66,7 +66,7 @@ def _parse_event(raw: dict[str, Any], *, strip_emoji: bool = False) -> CalendarE
             start=start,
             end=end,
             summary=summary,
-            description=_strip_emoji(raw.get("description")) or None,
+            description=raw.get("description") or None,
             location=_extract_location(raw.get("location")),
             uid=raw.get("id"),
         )
