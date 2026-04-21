@@ -26,22 +26,46 @@ _NB_MONTHS = (
     "januar", "februar", "mars", "april", "mai", "juni",
     "juli", "august", "september", "oktober", "november", "desember",
 )
+_EN_WEEKDAYS = (
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+)
+_EN_MONTHS = (
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+)
 
 
-def _format_meetup_description(meetup: datetime, start: datetime) -> str:
+def _is_norwegian(language: str | None) -> bool:
+    if not language:
+        return False
+    return language.lower().split("-")[0] in ("nb", "nn", "no")
+
+
+def _format_meetup_description(
+    meetup: datetime, start: datetime, language: str | None
+) -> str:
     local_meetup = dt_util.as_local(meetup)
     local_start = dt_util.as_local(start)
     time_str = local_meetup.strftime("%H:%M")
+    nb = _is_norwegian(language)
+
     if local_meetup.date() == local_start.date():
         minutes_before = round((local_start - local_meetup).total_seconds() / 60)
         if minutes_before <= 0:
-            return f"Oppmøte kl {time_str}"
-        if minutes_before == 1:
-            return f"Oppmøte 1 minutt før, kl {time_str}"
-        return f"Oppmøte {minutes_before} minutter før, kl {time_str}"
-    weekday = _NB_WEEKDAYS[local_meetup.weekday()]
-    month = _NB_MONTHS[local_meetup.month - 1]
-    return f"Oppmøte {weekday} {local_meetup.day}. {month} kl {time_str}"
+            return f"Oppmøte kl {time_str}" if nb else f"Meet at {time_str}"
+        if nb:
+            unit = "minutt" if minutes_before == 1 else "minutter"
+            return f"Oppmøte {minutes_before} {unit} før, kl {time_str}"
+        unit = "minute" if minutes_before == 1 else "minutes"
+        return f"Meet {minutes_before} {unit} before, at {time_str}"
+
+    if nb:
+        weekday = _NB_WEEKDAYS[local_meetup.weekday()]
+        month = _NB_MONTHS[local_meetup.month - 1]
+        return f"Oppmøte {weekday} {local_meetup.day}. {month} kl {time_str}"
+    weekday = _EN_WEEKDAYS[local_meetup.weekday()]
+    month = _EN_MONTHS[local_meetup.month - 1]
+    return f"Meet {weekday} {local_meetup.day} {month} at {time_str}"
 
 
 # Emoji ranges covering the common pictographic blocks, plus the glue
@@ -79,6 +103,7 @@ def _parse_event(
     strip_emoji: bool = False,
     strip_description_emoji: bool = False,
     use_meetup_time_as_description: bool = False,
+    language: str | None = None,
 ) -> CalendarEvent | None:
     try:
         start_str: str | None = raw.get("startTimestamp")
@@ -95,7 +120,7 @@ def _parse_event(
             summary = _strip_emoji(summary) or "Spond event"
 
         if use_meetup_time_as_description:
-            description = _build_meetup_description(raw, start)
+            description = _build_meetup_description(raw, start, language)
         else:
             description = raw.get("description") or None
             if description and strip_description_emoji:
@@ -114,7 +139,9 @@ def _parse_event(
         return None
 
 
-def _build_meetup_description(raw: dict[str, Any], start: datetime) -> str | None:
+def _build_meetup_description(
+    raw: dict[str, Any], start: datetime, language: str | None
+) -> str | None:
     meetup_str = raw.get("meetupTimeStamp")
     if not meetup_str:
         return None
@@ -124,7 +151,7 @@ def _build_meetup_description(raw: dict[str, Any], start: datetime) -> str | Non
         return None
     if meetup >= start:
         return None
-    return _format_meetup_description(meetup, start)
+    return _format_meetup_description(meetup, start, language)
 
 
 def _parse_dt(value: str) -> datetime:
@@ -229,6 +256,7 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
             use_meetup_time_as_description=(
                 self.coordinator.use_meetup_time_as_description
             ),
+            language=self.coordinator.language,
         )
         if ev is None:
             return None

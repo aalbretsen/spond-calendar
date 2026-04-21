@@ -23,7 +23,7 @@ Built on top of the excellent [Olen/Spond](https://github.com/Olen/Spond) unoffi
 * **Unanswered invite indicator** — open invites you haven't responded to are prefixed with a configurable marker (default: `❓ `) so they stand out in your calendar.
 * **Hide declined events** — optionally suppress events you've already declined.
 * **Strip emoji** — optionally remove emoji characters from event titles and/or event descriptions for cleaner calendar text.
-* **Meet-up time as description** — for events with a meet-up time (e.g. matches), optionally replace the event description with a short Norwegian note like `Oppmøte 30 minutter før, kl 16:30`.
+* **Meet-up time as description** — for events with a meet-up time (e.g. matches), optionally replace the event description with a short note (localized to Norwegian or English based on your Home Assistant language) like `Oppmøte 30 minutter før, kl 16:30` / `Meet 30 minutes before, at 16:30`.
 
 ## Installation
 
@@ -66,7 +66,7 @@ To add more groups, repeat the process.
 | Only mark unanswered when all represented members are unanswered | When you represent multiple members, require every one to be unanswered before marking | Off |
 | Remove emoji from event titles | Strip emoji characters from the event title | Off |
 | Remove emoji from event description | Strip emoji characters from the event description | Off |
-| Replace description with meet-up time | When a meet-up time is set on the event, show a short Norwegian note about when to meet instead of the Spond description. Events without a valid meet-up time will get no description. | Off |
+| Replace description with meet-up time | When a meet-up time is set on the event, show a short note about when to meet instead of the Spond description (Norwegian or English, based on your Home Assistant language). Events without a valid meet-up time will get no description. | Off |
 
 ## Using in automations
 

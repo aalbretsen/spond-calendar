@@ -104,6 +104,10 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
         )
 
     @property
+    def language(self) -> str:
+        return self.hass.config.language
+
+    @property
     def my_person_ids(self) -> list[str]:
         return list(self._my_person_ids)
 
