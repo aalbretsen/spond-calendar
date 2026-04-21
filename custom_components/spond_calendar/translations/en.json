@@ -20,13 +20,15 @@
           "unanswered_require_all": "Only mark unanswered when every represented member is unanswered",
           "hide_declined": "Hide events you have declined",
           "hide_declined_require_all": "Only hide when every represented member has declined",
-          "strip_emoji": "Remove emoji from event titles"
+          "strip_emoji": "Remove emoji from event titles",
+          "strip_description_emoji": "Remove emoji from event description"
         },
         "data_description": {
           "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite",
           "unanswered_require_all": "If you represent multiple members (yourself and/or children you are a guardian for), enable to require all of them to be unanswered before marking. When off, a single unanswered member is enough.",
           "hide_declined_require_all": "If you represent multiple members, enable to require all of them to have declined before hiding. When off, a single decline is enough to hide the event.",
-          "strip_emoji": "Removes emoji characters from the Spond event title for a cleaner calendar text. The unanswered-prefix above is kept as-is."
+          "strip_emoji": "Removes emoji characters from the Spond event title for a cleaner calendar text. The unanswered-prefix above is kept as-is.",
+          "strip_description_emoji": "Removes emoji characters from the Spond event description for a cleaner calendar text."
         }
       }
     },
@@ -49,13 +51,15 @@
           "unanswered_require_all": "Only mark unanswered when every represented member is unanswered",
           "hide_declined": "Hide events you have declined",
           "hide_declined_require_all": "Only hide when every represented member has declined",
-          "strip_emoji": "Remove emoji from event titles"
+          "strip_emoji": "Remove emoji from event titles",
+          "strip_description_emoji": "Remove emoji from event description"
         },
         "data_description": {
           "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite",
           "unanswered_require_all": "If you represent multiple members (yourself and/or children you are a guardian for), enable to require all of them to be unanswered before marking. When off, a single unanswered member is enough.",
           "hide_declined_require_all": "If you represent multiple members, enable to require all of them to have declined before hiding. When off, a single decline is enough to hide the event.",
-          "strip_emoji": "Removes emoji characters from the Spond event title for a cleaner calendar text. The unanswered-prefix above is kept as-is."
+          "strip_emoji": "Removes emoji characters from the Spond event title for a cleaner calendar text. The unanswered-prefix above is kept as-is.",
+          "strip_description_emoji": "Removes emoji characters from the Spond event description for a cleaner calendar text."
         }
       }
     }

@@ -47,7 +47,12 @@ async def async_setup_entry(
     async_add_entities([SpondCalendarEntity(coordinator, entry)], update_before_add=False)
 
 
-def _parse_event(raw: dict[str, Any], *, strip_emoji: bool = False) -> CalendarEvent | None:
+def _parse_event(
+    raw: dict[str, Any],
+    *,
+    strip_emoji: bool = False,
+    strip_description_emoji: bool = False,
+) -> CalendarEvent | None:
     try:
         start_str: str | None = raw.get("startTimestamp")
         end_str: str | None = raw.get("endTimestamp")
@@ -62,11 +67,15 @@ def _parse_event(raw: dict[str, Any], *, strip_emoji: bool = False) -> CalendarE
         if strip_emoji:
             summary = _strip_emoji(summary) or "Spond event"
 
+        description = raw.get("description") or None
+        if description and strip_description_emoji:
+            description = _strip_emoji(description) or None
+
         return CalendarEvent(
             start=start,
             end=end,
             summary=summary,
-            description=raw.get("description") or None,
+            description=description,
             location=_extract_location(raw.get("location")),
             uid=raw.get("id"),
         )
@@ -170,7 +179,11 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
         statuses = _get_rsvp_statuses(raw, self.coordinator.my_person_ids) if _invites_sent(raw) else []
         if self._should_hide(statuses):
             return None
-        ev = _parse_event(raw, strip_emoji=self.coordinator.strip_emoji)
+        ev = _parse_event(
+            raw,
+            strip_emoji=self.coordinator.strip_emoji,
+            strip_description_emoji=self.coordinator.strip_description_emoji,
+        )
         if ev is None:
             return None
         return self._apply_rsvp_indicator(ev, statuses)

@@ -18,6 +18,7 @@ from .const import (
     CONF_SHOW_UNANSWERED_INDICATOR,
     CONF_SPOND_EMAIL,
     CONF_SPOND_PASSWORD,
+    CONF_STRIP_DESCRIPTION_EMOJI,
     CONF_STRIP_EMOJI,
     CONF_UNANSWERED_PREFIX,
     CONF_UNANSWERED_REQUIRE_ALL,
@@ -25,6 +26,7 @@ from .const import (
     DEFAULT_DAYS_BACK,
     DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
     DEFAULT_SCAN_INTERVAL_MINUTES,
+    DEFAULT_STRIP_DESCRIPTION_EMOJI,
     DEFAULT_STRIP_EMOJI,
     DEFAULT_UNANSWERED_PREFIX,
     DEFAULT_UNANSWERED_REQUIRE_ALL,
@@ -85,6 +87,12 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
     @property
     def strip_emoji(self) -> bool:
         return self._entry.options.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI)
+
+    @property
+    def strip_description_emoji(self) -> bool:
+        return self._entry.options.get(
+            CONF_STRIP_DESCRIPTION_EMOJI, DEFAULT_STRIP_DESCRIPTION_EMOJI
+        )
 
     @property
     def my_person_ids(self) -> list[str]:
