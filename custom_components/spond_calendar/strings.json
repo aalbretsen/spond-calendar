@@ -21,14 +21,16 @@
           "hide_declined": "Hide events you have declined",
           "hide_declined_require_all": "Only hide when every represented member has declined",
           "strip_emoji": "Remove emoji from event titles",
-          "strip_description_emoji": "Remove emoji from event description"
+          "strip_description_emoji": "Remove emoji from event description",
+          "use_meetup_time_as_description": "Replace description with meet-up time"
         },
         "data_description": {
           "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite.",
           "unanswered_require_all": "If you represent multiple members (yourself and/or children you are a guardian for), enable to require all of them to be unanswered before marking. When off, a single unanswered member is enough.",
           "hide_declined_require_all": "If you represent multiple members, enable to require all of them to have declined before hiding. When off, a single decline is enough to hide the event.",
           "strip_emoji": "Removes emoji characters from the Spond event title for a cleaner calendar text. The unanswered-prefix above is kept as-is.",
-          "strip_description_emoji": "Removes emoji characters from the Spond event description for a cleaner calendar text."
+          "strip_description_emoji": "Removes emoji characters from the Spond event description for a cleaner calendar text.",
+          "use_meetup_time_as_description": "When the event has a meet-up time set, replace the event description with a short note about when to show up (in Norwegian). Events without a valid meet-up time will get no description."
         }
       }
     },
@@ -52,14 +54,16 @@
           "hide_declined": "Hide events you have declined",
           "hide_declined_require_all": "Only hide when every represented member has declined",
           "strip_emoji": "Remove emoji from event titles",
-          "strip_description_emoji": "Remove emoji from event description"
+          "strip_description_emoji": "Remove emoji from event description",
+          "use_meetup_time_as_description": "Replace description with meet-up time"
         },
         "data_description": {
           "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite.",
           "unanswered_require_all": "If you represent multiple members (yourself and/or children you are a guardian for), enable to require all of them to be unanswered before marking. When off, a single unanswered member is enough.",
           "hide_declined_require_all": "If you represent multiple members, enable to require all of them to have declined before hiding. When off, a single decline is enough to hide the event.",
           "strip_emoji": "Removes emoji characters from the Spond event title for a cleaner calendar text. The unanswered-prefix above is kept as-is.",
-          "strip_description_emoji": "Removes emoji characters from the Spond event description for a cleaner calendar text."
+          "strip_description_emoji": "Removes emoji characters from the Spond event description for a cleaner calendar text.",
+          "use_meetup_time_as_description": "When the event has a meet-up time set, replace the event description with a short note about when to show up (in Norwegian). Events without a valid meet-up time will get no description."
         }
       }
     }

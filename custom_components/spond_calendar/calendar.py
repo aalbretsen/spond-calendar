@@ -11,11 +11,37 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from . import SpondCoordinator
 from .const import CONF_GROUP_ID, CONF_GROUP_NAME, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
+
+_NB_WEEKDAYS = (
+    "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag", "søndag",
+)
+_NB_MONTHS = (
+    "januar", "februar", "mars", "april", "mai", "juni",
+    "juli", "august", "september", "oktober", "november", "desember",
+)
+
+
+def _format_meetup_description(meetup: datetime, start: datetime) -> str:
+    local_meetup = dt_util.as_local(meetup)
+    local_start = dt_util.as_local(start)
+    time_str = local_meetup.strftime("%H:%M")
+    if local_meetup.date() == local_start.date():
+        minutes_before = round((local_start - local_meetup).total_seconds() / 60)
+        if minutes_before <= 0:
+            return f"Oppmøte kl {time_str}"
+        if minutes_before == 1:
+            return f"Oppmøte 1 minutt før, kl {time_str}"
+        return f"Oppmøte {minutes_before} minutter før, kl {time_str}"
+    weekday = _NB_WEEKDAYS[local_meetup.weekday()]
+    month = _NB_MONTHS[local_meetup.month - 1]
+    return f"Oppmøte {weekday} {local_meetup.day}. {month} kl {time_str}"
 
 
 # Emoji ranges covering the common pictographic blocks, plus the glue
@@ -52,6 +78,7 @@ def _parse_event(
     *,
     strip_emoji: bool = False,
     strip_description_emoji: bool = False,
+    use_meetup_time_as_description: bool = False,
 ) -> CalendarEvent | None:
     try:
         start_str: str | None = raw.get("startTimestamp")
@@ -67,9 +94,12 @@ def _parse_event(
         if strip_emoji:
             summary = _strip_emoji(summary) or "Spond event"
 
-        description = raw.get("description") or None
-        if description and strip_description_emoji:
-            description = _strip_emoji(description) or None
+        if use_meetup_time_as_description:
+            description = _build_meetup_description(raw, start)
+        else:
+            description = raw.get("description") or None
+            if description and strip_description_emoji:
+                description = _strip_emoji(description) or None
 
         return CalendarEvent(
             start=start,
@@ -82,6 +112,19 @@ def _parse_event(
     except Exception:
         _LOGGER.debug("Failed to parse Spond event: %s", raw, exc_info=True)
         return None
+
+
+def _build_meetup_description(raw: dict[str, Any], start: datetime) -> str | None:
+    meetup_str = raw.get("meetupTimeStamp")
+    if not meetup_str:
+        return None
+    try:
+        meetup = _parse_dt(meetup_str)
+    except (ValueError, TypeError):
+        return None
+    if meetup >= start:
+        return None
+    return _format_meetup_description(meetup, start)
 
 
 def _parse_dt(value: str) -> datetime:
@@ -183,6 +226,9 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
             raw,
             strip_emoji=self.coordinator.strip_emoji,
             strip_description_emoji=self.coordinator.strip_description_emoji,
+            use_meetup_time_as_description=(
+                self.coordinator.use_meetup_time_as_description
+            ),
         )
         if ev is None:
             return None

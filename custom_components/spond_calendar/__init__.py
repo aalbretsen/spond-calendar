@@ -22,6 +22,7 @@ from .const import (
     CONF_STRIP_EMOJI,
     CONF_UNANSWERED_PREFIX,
     CONF_UNANSWERED_REQUIRE_ALL,
+    CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
     DEFAULT_DAYS_AHEAD,
     DEFAULT_DAYS_BACK,
     DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
@@ -30,6 +31,7 @@ from .const import (
     DEFAULT_STRIP_EMOJI,
     DEFAULT_UNANSWERED_PREFIX,
     DEFAULT_UNANSWERED_REQUIRE_ALL,
+    DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
     DOMAIN,
 )
 
@@ -92,6 +94,13 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
     def strip_description_emoji(self) -> bool:
         return self._entry.options.get(
             CONF_STRIP_DESCRIPTION_EMOJI, DEFAULT_STRIP_DESCRIPTION_EMOJI
+        )
+
+    @property
+    def use_meetup_time_as_description(self) -> bool:
+        return self._entry.options.get(
+            CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
+            DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
         )
 
     @property

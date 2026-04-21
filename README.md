@@ -23,6 +23,7 @@ Built on top of the excellent [Olen/Spond](https://github.com/Olen/Spond) unoffi
 * **Unanswered invite indicator** — open invites you haven't responded to are prefixed with a configurable marker (default: `❓ `) so they stand out in your calendar.
 * **Hide declined events** — optionally suppress events you've already declined.
 * **Strip emoji** — optionally remove emoji characters from event titles and/or event descriptions for cleaner calendar text.
+* **Meet-up time as description** — for events with a meet-up time (e.g. matches), optionally replace the event description with a short Norwegian note like `Oppmøte 30 minutter før, kl 16:30`.
 
 ## Installation
 
@@ -52,19 +53,20 @@ To add more groups, repeat the process.
 
 ## Configuration options
 
-| Option                                                           | Description                                                                            | Default |
-|------------------------------------------------------------------|----------------------------------------------------------------------------------------|-------|
-| Email                                                            | Your Spond login email                                                                 | —     |
-| Password                                                         | Your Spond password                                                                    | —     |
-| Group                                                            | The Spond group to expose                                                              | —     |
-| Include planned events                                           | Show events not yet open for RSVP                                                      | Off   |
-| Mark unanswered invites                                          | Prefix unanswered event titles with an indicator                                       | On    |
-| Prefix for unanswered events                                     | Text prepended to event title when invite is open                                      | ❓     |
-| Hide declined events                                             | Suppress events you have declined                                                      | Off   |
-| Only hide when all represented members declined                  | When you represent multiple members, require every one to have declined before hiding  | On    |
-| Only mark unanswered when all represented members are unanswered | When you represent multiple members, require every one to be unanswered before marking | Off   |
-| Remove emoji from event titles                                   | Strip emoji characters from the event title                                            | Off   |
-| Remove emoji from event description                              | Strip emoji characters from the event description                                      | Off   |
+| Option | Description | Default |
+| --- | --- | --- |
+| Email | Your Spond login email | — |
+| Password | Your Spond password | — |
+| Group | The Spond group to expose | — |
+| Include planned events | Show events not yet open for RSVP | Off |
+| Mark unanswered invites | Prefix unanswered event titles with an indicator | On |
+| Prefix for unanswered events | Text prepended to event title when invite is open | `❓ ` |
+| Hide declined events | Suppress events you have declined | Off |
+| Only hide when all represented members declined | When you represent multiple members, require every one to have declined before hiding | On |
+| Only mark unanswered when all represented members are unanswered | When you represent multiple members, require every one to be unanswered before marking | Off |
+| Remove emoji from event titles | Strip emoji characters from the event title | Off |
+| Remove emoji from event description | Strip emoji characters from the event description | Off |
+| Replace description with meet-up time | When a meet-up time is set on the event, show a short Norwegian note about when to meet instead of the Spond description. Events without a valid meet-up time will get no description. | Off |
 
 ## Using in automations
 

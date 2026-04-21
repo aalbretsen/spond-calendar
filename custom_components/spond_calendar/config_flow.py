@@ -22,11 +22,13 @@ from .const import (
     CONF_STRIP_EMOJI,
     CONF_UNANSWERED_PREFIX,
     CONF_UNANSWERED_REQUIRE_ALL,
+    CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
     DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
     DEFAULT_STRIP_DESCRIPTION_EMOJI,
     DEFAULT_STRIP_EMOJI,
     DEFAULT_UNANSWERED_PREFIX,
     DEFAULT_UNANSWERED_REQUIRE_ALL,
+    DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
     DOMAIN,
 )
 
@@ -109,6 +111,10 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_STRIP_DESCRIPTION_EMOJI: user_input.get(
                         CONF_STRIP_DESCRIPTION_EMOJI, DEFAULT_STRIP_DESCRIPTION_EMOJI
                     ),
+                    CONF_USE_MEETUP_TIME_AS_DESCRIPTION: user_input.get(
+                        CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
+                        DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
+                    ),
                 },
             )
 
@@ -135,6 +141,10 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional(
                         CONF_STRIP_DESCRIPTION_EMOJI,
                         default=DEFAULT_STRIP_DESCRIPTION_EMOJI,
+                    ): bool,
+                    vol.Optional(
+                        CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
+                        default=DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
                     ): bool,
                 }
             ),
@@ -199,6 +209,13 @@ class SpondCalendarOptionsFlow(config_entries.OptionsFlow):
                         CONF_STRIP_DESCRIPTION_EMOJI,
                         default=opts.get(
                             CONF_STRIP_DESCRIPTION_EMOJI, DEFAULT_STRIP_DESCRIPTION_EMOJI
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
+                        default=opts.get(
+                            CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
+                            DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
                         ),
                     ): bool,
                 }
