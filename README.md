@@ -53,37 +53,20 @@ To add more groups, repeat the process.
 
 ## Configuration options
 
-| Option | Description | Default |
-| --- | --- | --- |
-| Email | Your Spond login email | — |
-| Password | Your Spond password | — |
-| Group | The Spond group to expose | — |
-| Include planned events | Show events not yet open for RSVP | Off |
-| Mark unanswered invites | Prefix unanswered event titles with an indicator | On |
-| Prefix for unanswered events | Text prepended to event title when invite is open | `❓ ` |
-| Hide declined events | Suppress events you have declined | Off |
-| Only hide when all represented members declined | When you represent multiple members, require every one to have declined before hiding | On |
-| Only mark unanswered when all represented members are unanswered | When you represent multiple members, require every one to be unanswered before marking | Off |
-| Remove emoji from event titles | Strip emoji characters from the event title | Off |
-| Remove emoji from event description | Strip emoji characters from the event description | Off |
-| Replace description with meet-up time | When a meet-up time is set on the event, show a short note about when to meet instead of the Spond description (Norwegian or English, based on your Home Assistant language). Events without a valid meet-up time will get no description. | Off |
-
-## Using in automations
-
-```yaml
-automation:
-  - alias: "Notify before Spond event"
-    trigger:
-      - platform: calendar
-        event: start
-        entity_id: calendar.my_spond_group
-        offset: "-0:30:0"
-    action:
-      - service: notify.mobile_app_my_phone
-        data:
-          title: "Upcoming: {{ trigger.calendar_event.summary }}"
-          message: "Starts at {{ trigger.calendar_event.start }} — {{ trigger.calendar_event.location }}"
-```
+| Option | Description |
+| --- | --- |
+| Email | Your Spond login email |
+| Password | Your Spond password |
+| Group | The Spond group to expose |
+| Include planned events | Show events not yet open for RSVP |
+| Mark unanswered invites | Prefix unanswered event titles with an indicator |
+| Prefix for unanswered events | Text prepended to event title when invite is open |
+| Hide declined events | Suppress events you have declined |
+| Only hide when all represented members declined | When you represent multiple members, require every one to have declined before hiding |
+| Only mark unanswered when all represented members are unanswered | When you represent multiple members, require every one to be unanswered before marking |
+| Remove emoji from event title | Strip emoji characters from the event title |
+| Remove emoji from event description | Strip emoji characters from the event description |
+| Replace description with meet-up time | When a meet-up time is set on the event, show a short note about when to meet instead of the Spond description (Norwegian or English, based on your Home Assistant language). Events without a valid meet-up time will get no description. |
 
 ## Architecture
 
@@ -91,15 +74,14 @@ automation:
 Spond Cloud API
       │
       │  (HTTPS / JSON, polled every 15 min)
-      │  (30 days back ← today → 90 days ahead)
       ▼
 ┌─────────────────────┐
-│   SpondCoordinator   │  DataUpdateCoordinator — manages session, fetches events
+│   SpondCoordinator  │  DataUpdateCoordinator — manages session, fetches events
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────────┐
-│  SpondCalendarEntity     │  CalendarEntity — maps Spond events → CalendarEvent
+│  SpondCalendarEntity    │  CalendarEntity — maps Spond events → CalendarEvent
 └──────────┬──────────────┘
            │  • Checks RSVP status (accepted / declined / unanswered)
            │  • Applies unanswered-invite prefix to event title

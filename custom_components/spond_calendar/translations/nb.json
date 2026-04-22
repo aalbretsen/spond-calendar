@@ -20,7 +20,7 @@
           "unanswered_require_all": "Merk som ubesvart kun når alle representerte medlemmer er ubesvart",
           "hide_declined": "Skjul hendelser du har takket nei til",
           "hide_declined_require_all": "Skjul kun når alle representerte medlemmer har takket nei",
-          "strip_emoji": "Fjern emoji fra hendelsestitler",
+          "strip_title_emoji": "Fjern emoji fra hendelsestittelen",
           "strip_description_emoji": "Fjern emoji fra hendelsesbeskrivelsen",
           "use_meetup_time_as_description": "Erstatt beskrivelse med oppmøtetid"
         },
@@ -28,7 +28,7 @@
           "unanswered_prefix": "Tekst som legges foran hendelsestittelen når du har en åpen, ubesvart invitasjon",
           "unanswered_require_all": "Hvis du representerer flere medlemmer (deg selv og/eller barn du er foresatt for), slå på for å kreve at alle er ubesvart før hendelsen merkes. Når av er det nok at ett medlem er ubesvart.",
           "hide_declined_require_all": "Hvis du representerer flere medlemmer, slå på for å kreve at alle har takket nei før hendelsen skjules. Når av er det nok at ett medlem har takket nei.",
-          "strip_emoji": "Fjerner emoji-tegn fra Spond-hendelsestittelen for en ryddigere kalendertekst. Prefikset over for ubesvarte hendelser beholdes som det er.",
+          "strip_title_emoji": "Fjerner emoji-tegn fra Spond-hendelsestittelen for en ryddigere kalendertekst. Prefikset over for ubesvarte hendelser beholdes som det er.",
           "strip_description_emoji": "Fjerner emoji-tegn fra Spond-hendelsesbeskrivelsen for en ryddigere kalendertekst.",
           "use_meetup_time_as_description": "Når hendelsen har oppmøtetid satt, erstattes beskrivelsen med en kort tekst om når man skal møte. Hendelser uten gyldig oppmøtetid får ingen beskrivelse."
         }
@@ -53,7 +53,7 @@
           "unanswered_require_all": "Merk som ubesvart kun når alle representerte medlemmer er ubesvart",
           "hide_declined": "Skjul hendelser du har takket nei til",
           "hide_declined_require_all": "Skjul kun når alle representerte medlemmer har takket nei",
-          "strip_emoji": "Fjern emoji fra hendelsestitler",
+          "strip_title_emoji": "Fjern emoji fra hendelsestittelen",
           "strip_description_emoji": "Fjern emoji fra hendelsesbeskrivelsen",
           "use_meetup_time_as_description": "Erstatt beskrivelse med oppmøtetid"
         },
@@ -61,7 +61,7 @@
           "unanswered_prefix": "Tekst som legges foran hendelsestittelen når du har en åpen, ubesvart invitasjon",
           "unanswered_require_all": "Hvis du representerer flere medlemmer (deg selv og/eller barn du er foresatt for), slå på for å kreve at alle er ubesvart før hendelsen merkes. Når av er det nok at ett medlem er ubesvart.",
           "hide_declined_require_all": "Hvis du representerer flere medlemmer, slå på for å kreve at alle har takket nei før hendelsen skjules. Når av er det nok at ett medlem har takket nei.",
-          "strip_emoji": "Fjerner emoji-tegn fra Spond-hendelsestittelen for en ryddigere kalendertekst. Prefikset over for ubesvarte hendelser beholdes som det er.",
+          "strip_title_emoji": "Fjerner emoji-tegn fra Spond-hendelsestittelen for en ryddigere kalendertekst. Prefikset over for ubesvarte hendelser beholdes som det er.",
           "strip_description_emoji": "Fjerner emoji-tegn fra Spond-hendelsesbeskrivelsen for en ryddigere kalendertekst.",
           "use_meetup_time_as_description": "Når hendelsen har oppmøtetid satt, erstattes beskrivelsen med en kort tekst om når man skal møte. Hendelser uten gyldig oppmøtetid får ingen beskrivelse."
         }

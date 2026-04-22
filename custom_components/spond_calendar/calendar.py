@@ -1,9 +1,9 @@
 """Calendar platform for Spond Calendar integration."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import logging
 import re
+from datetime import datetime, timezone
 from typing import Any
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
@@ -17,6 +17,24 @@ from . import SpondCoordinator
 from .const import CONF_GROUP_ID, CONF_GROUP_NAME, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
+
+_EMOJI_RE = re.compile(
+    "["
+    "\U0001F000-\U0001FFFF"
+    "\U00002600-\U000027BF"
+    "\U0001F1E6-\U0001F1FF"
+    "\U0000FE0F"
+    "\U0000200D"
+    "]+",
+    flags=re.UNICODE,
+)
+
+
+def _strip_emoji(text: str) -> str:
+    if not text:
+        return text
+    return " ".join(_EMOJI_RE.sub("", text).split()).strip()
 
 
 _NB_WEEKDAYS = (
@@ -41,25 +59,25 @@ def _is_norwegian(language: str | None) -> bool:
     return language.lower().split("-")[0] in ("nb", "nn", "no")
 
 
-def _format_meetup_description(
+def _format_meetup_text(
     meetup: datetime, start: datetime, language: str | None
 ) -> str:
     local_meetup = dt_util.as_local(meetup)
     local_start = dt_util.as_local(start)
     time_str = local_meetup.strftime("%H:%M")
-    nb = _is_norwegian(language)
+    is_norwegian = _is_norwegian(language)
 
     if local_meetup.date() == local_start.date():
         minutes_before = round((local_start - local_meetup).total_seconds() / 60)
         if minutes_before <= 0:
-            return f"Oppmøte kl {time_str}" if nb else f"Meet at {time_str}"
-        if nb:
+            return f"Oppmøte kl {time_str}" if is_norwegian else f"Meet at {time_str}"
+        if is_norwegian:
             unit = "minutt" if minutes_before == 1 else "minutter"
             return f"Oppmøte {minutes_before} {unit} før, kl {time_str}"
         unit = "minute" if minutes_before == 1 else "minutes"
         return f"Meet {minutes_before} {unit} before, at {time_str}"
 
-    if nb:
+    if is_norwegian:
         weekday = _NB_WEEKDAYS[local_meetup.weekday()]
         month = _NB_MONTHS[local_meetup.month - 1]
         return f"Oppmøte {weekday} {local_meetup.day}. {month} kl {time_str}"
@@ -68,78 +86,7 @@ def _format_meetup_description(
     return f"Meet {weekday} {local_meetup.day} {month} at {time_str}"
 
 
-# Emoji ranges covering the common pictographic blocks, plus the glue
-# codepoints (VS-16, ZWJ) used in composite emoji like 👨‍👩‍👧.
-_EMOJI_RE = re.compile(
-    "["
-    "\U0001F000-\U0001FFFF"
-    "\U00002600-\U000027BF"
-    "\U0001F1E6-\U0001F1FF"
-    "\U0000FE0F"
-    "\U0000200D"
-    "]+",
-    flags=re.UNICODE,
-)
-
-
-def _strip_emoji(text: str) -> str:
-    if not text:
-        return text
-    return " ".join(_EMOJI_RE.sub("", text).split()).strip()
-
-
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    coordinator: SpondCoordinator = entry.runtime_data
-    async_add_entities([SpondCalendarEntity(coordinator, entry)], update_before_add=False)
-
-
-def _parse_event(
-    raw: dict[str, Any],
-    *,
-    strip_emoji: bool = False,
-    strip_description_emoji: bool = False,
-    use_meetup_time_as_description: bool = False,
-    language: str | None = None,
-) -> CalendarEvent | None:
-    try:
-        start_str: str | None = raw.get("startTimestamp")
-        end_str: str | None = raw.get("endTimestamp")
-
-        if not start_str:
-            return None
-
-        start = _parse_dt(start_str)
-        end = _parse_dt(end_str) if end_str else start
-
-        summary = raw.get("heading", "Spond event")
-        if strip_emoji:
-            summary = _strip_emoji(summary) or "Spond event"
-
-        if use_meetup_time_as_description:
-            description = _build_meetup_description(raw, start, language)
-        else:
-            description = raw.get("description") or None
-            if description and strip_description_emoji:
-                description = _strip_emoji(description) or None
-
-        return CalendarEvent(
-            start=start,
-            end=end,
-            summary=summary,
-            description=description,
-            location=_extract_location(raw.get("location")),
-            uid=raw.get("id"),
-        )
-    except Exception:
-        _LOGGER.debug("Failed to parse Spond event: %s", raw, exc_info=True)
-        return None
-
-
-def _build_meetup_description(
+def _meetup_description(
     raw: dict[str, Any], start: datetime, language: str | None
 ) -> str | None:
     meetup_str = raw.get("meetupTimestamp")
@@ -151,7 +98,7 @@ def _build_meetup_description(
         return None
     if meetup >= start:
         return None
-    return _format_meetup_description(meetup, start, language)
+    return _format_meetup_text(meetup, start, language)
 
 
 def _parse_dt(value: str) -> datetime:
@@ -201,6 +148,59 @@ def _get_rsvp_statuses(raw: dict[str, Any], person_ids: list[str]) -> list[str]:
     return statuses
 
 
+def _parse_event(
+    raw: dict[str, Any],
+    *,
+    strip_title_emoji: bool = False,
+    strip_description_emoji: bool = False,
+    use_meetup_time_as_description: bool = False,
+    language: str | None = None,
+) -> CalendarEvent | None:
+    try:
+        start_str: str | None = raw.get("startTimestamp")
+        end_str: str | None = raw.get("endTimestamp")
+
+        if not start_str:
+            return None
+
+        start = _parse_dt(start_str)
+        end = _parse_dt(end_str) if end_str else start
+
+        summary = raw.get("heading", "Spond event")
+        if strip_title_emoji:
+            summary = _strip_emoji(summary) or "Spond event"
+
+        if use_meetup_time_as_description:
+            description = _meetup_description(raw, start, language)
+        else:
+            description = raw.get("description") or None
+            if description and strip_description_emoji:
+                description = _strip_emoji(description) or None
+
+        return CalendarEvent(
+            start=start,
+            end=end,
+            summary=summary,
+            description=description,
+            location=_extract_location(raw.get("location")),
+            uid=raw.get("id"),
+        )
+    except Exception:  # noqa: BLE001
+        _LOGGER.debug("Failed to parse Spond event: %s", raw, exc_info=True)
+        return None
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    coordinator: SpondCoordinator = entry.runtime_data
+    async_add_entities(
+        [SpondCalendarEntity(coordinator, entry)], update_before_add=False
+    )
+
+
 class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
 
     _attr_has_entity_name = True
@@ -228,39 +228,43 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
         return any(s == "unanswered" for s in statuses)
 
     def _apply_rsvp_indicator(
-        self, ev: CalendarEvent, statuses: list[str]
+        self, event: CalendarEvent, statuses: list[str]
     ) -> CalendarEvent:
         if not self.coordinator.show_unanswered_indicator:
-            return ev
+            return event
         if not self._is_unanswered(statuses):
-            return ev
+            return event
         prefix = self.coordinator.unanswered_prefix
-        summary = f"{prefix} {ev.summary}".strip() if prefix else ev.summary
+        summary = f"{prefix} {event.summary}".strip() if prefix else event.summary
         return CalendarEvent(
-            start=ev.start,
-            end=ev.end,
+            start=event.start,
+            end=event.end,
             summary=summary,
-            description=ev.description,
-            location=ev.location,
-            uid=ev.uid,
+            description=event.description,
+            location=event.location,
+            uid=event.uid,
         )
 
     def _process_raw(self, raw: dict[str, Any]) -> CalendarEvent | None:
-        statuses = _get_rsvp_statuses(raw, self.coordinator.my_person_ids) if _invites_sent(raw) else []
+        statuses = (
+            _get_rsvp_statuses(raw, self.coordinator.my_person_ids)
+            if _invites_sent(raw)
+            else []
+        )
         if self._should_hide(statuses):
             return None
-        ev = _parse_event(
+        event = _parse_event(
             raw,
-            strip_emoji=self.coordinator.strip_emoji,
+            strip_title_emoji=self.coordinator.strip_title_emoji,
             strip_description_emoji=self.coordinator.strip_description_emoji,
             use_meetup_time_as_description=(
                 self.coordinator.use_meetup_time_as_description
             ),
             language=self.coordinator.language,
         )
-        if ev is None:
+        if event is None:
             return None
-        return self._apply_rsvp_indicator(ev, statuses)
+        return self._apply_rsvp_indicator(event, statuses)
 
     @property
     def event(self) -> CalendarEvent | None:
@@ -268,15 +272,16 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
             return None
         now = datetime.now(tz=timezone.utc)
         for raw in self.coordinator.data:
-            ev = self._process_raw(raw)
-            if ev and ev.start <= now <= ev.end:
-                return ev
+            event = self._process_raw(raw)
+            if event and event.start <= now <= event.end:
+                return event
         upcoming: CalendarEvent | None = None
         for raw in self.coordinator.data:
-            ev = self._process_raw(raw)
-            if ev and ev.start > now:
-                if upcoming is None or ev.start < upcoming.start:
-                    upcoming = ev
+            event = self._process_raw(raw)
+            if event and event.start > now and (
+                upcoming is None or event.start < upcoming.start
+            ):
+                upcoming = event
         return upcoming
 
     async def async_get_events(
@@ -289,8 +294,8 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
             return []
         results: list[CalendarEvent] = []
         for raw in self.coordinator.data:
-            ev = self._process_raw(raw)
-            if ev and ev.end >= start_date and ev.start <= end_date:
-                results.append(ev)
+            event = self._process_raw(raw)
+            if event and event.end >= start_date and event.start <= end_date:
+                results.append(event)
         results.sort(key=lambda e: e.start)
         return results

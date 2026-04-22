@@ -19,13 +19,16 @@ from .const import (
     CONF_SPOND_EMAIL,
     CONF_SPOND_PASSWORD,
     CONF_STRIP_DESCRIPTION_EMOJI,
-    CONF_STRIP_EMOJI,
+    CONF_STRIP_TITLE_EMOJI,
     CONF_UNANSWERED_PREFIX,
     CONF_UNANSWERED_REQUIRE_ALL,
     CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
+    DEFAULT_HIDE_DECLINED,
     DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
+    DEFAULT_INCLUDE_PLANNED,
+    DEFAULT_SHOW_UNANSWERED_INDICATOR,
     DEFAULT_STRIP_DESCRIPTION_EMOJI,
-    DEFAULT_STRIP_EMOJI,
+    DEFAULT_STRIP_TITLE_EMOJI,
     DEFAULT_UNANSWERED_PREFIX,
     DEFAULT_UNANSWERED_REQUIRE_ALL,
     DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
@@ -40,6 +43,38 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_SPOND_PASSWORD): str,
     }
 )
+
+_OPTION_DEFAULTS: dict[str, Any] = {
+    CONF_INCLUDE_PLANNED: DEFAULT_INCLUDE_PLANNED,
+    CONF_SHOW_UNANSWERED_INDICATOR: DEFAULT_SHOW_UNANSWERED_INDICATOR,
+    CONF_UNANSWERED_PREFIX: DEFAULT_UNANSWERED_PREFIX,
+    CONF_UNANSWERED_REQUIRE_ALL: DEFAULT_UNANSWERED_REQUIRE_ALL,
+    CONF_HIDE_DECLINED: DEFAULT_HIDE_DECLINED,
+    CONF_HIDE_DECLINED_REQUIRE_ALL: DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
+    CONF_STRIP_TITLE_EMOJI: DEFAULT_STRIP_TITLE_EMOJI,
+    CONF_STRIP_DESCRIPTION_EMOJI: DEFAULT_STRIP_DESCRIPTION_EMOJI,
+    CONF_USE_MEETUP_TIME_AS_DESCRIPTION: DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
+}
+
+_OPTION_TYPES: dict[str, type] = {
+    CONF_INCLUDE_PLANNED: bool,
+    CONF_SHOW_UNANSWERED_INDICATOR: bool,
+    CONF_UNANSWERED_PREFIX: str,
+    CONF_UNANSWERED_REQUIRE_ALL: bool,
+    CONF_HIDE_DECLINED: bool,
+    CONF_HIDE_DECLINED_REQUIRE_ALL: bool,
+    CONF_STRIP_TITLE_EMOJI: bool,
+    CONF_STRIP_DESCRIPTION_EMOJI: bool,
+    CONF_USE_MEETUP_TIME_AS_DESCRIPTION: bool,
+}
+
+
+def _options_schema_fields(current: dict[str, Any] | None = None) -> dict[vol.Marker, type]:
+    current = current or {}
+    return {
+        vol.Optional(key, default=current.get(key, default)): _OPTION_TYPES[key]
+        for key, default in _OPTION_DEFAULTS.items()
+    }
 
 
 class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -88,6 +123,8 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(group_id)
             self._abort_if_unique_id_configured()
 
+            options = {k: v for k, v in user_input.items() if k != CONF_GROUP_ID}
+
             return self.async_create_entry(
                 title=f"Spond – {group_name}",
                 data={
@@ -96,26 +133,7 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_GROUP_ID: group_id,
                     CONF_GROUP_NAME: group_name,
                 },
-                options={
-                    CONF_INCLUDE_PLANNED: user_input.get(CONF_INCLUDE_PLANNED, False),
-                    CONF_SHOW_UNANSWERED_INDICATOR: user_input.get(CONF_SHOW_UNANSWERED_INDICATOR, True),
-                    CONF_UNANSWERED_PREFIX: user_input.get(CONF_UNANSWERED_PREFIX, DEFAULT_UNANSWERED_PREFIX),
-                    CONF_UNANSWERED_REQUIRE_ALL: user_input.get(
-                        CONF_UNANSWERED_REQUIRE_ALL, DEFAULT_UNANSWERED_REQUIRE_ALL
-                    ),
-                    CONF_HIDE_DECLINED: user_input.get(CONF_HIDE_DECLINED, False),
-                    CONF_HIDE_DECLINED_REQUIRE_ALL: user_input.get(
-                        CONF_HIDE_DECLINED_REQUIRE_ALL, DEFAULT_HIDE_DECLINED_REQUIRE_ALL
-                    ),
-                    CONF_STRIP_EMOJI: user_input.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI),
-                    CONF_STRIP_DESCRIPTION_EMOJI: user_input.get(
-                        CONF_STRIP_DESCRIPTION_EMOJI, DEFAULT_STRIP_DESCRIPTION_EMOJI
-                    ),
-                    CONF_USE_MEETUP_TIME_AS_DESCRIPTION: user_input.get(
-                        CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
-                        DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
-                    ),
-                },
+                options=options,
             )
 
         group_options = {g["id"]: g["name"] for g in self._groups}
@@ -125,27 +143,7 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_GROUP_ID): vol.In(group_options),
-                    vol.Optional(CONF_INCLUDE_PLANNED, default=False): bool,
-                    vol.Optional(CONF_SHOW_UNANSWERED_INDICATOR, default=True): bool,
-                    vol.Optional(CONF_UNANSWERED_PREFIX, default=DEFAULT_UNANSWERED_PREFIX): str,
-                    vol.Optional(
-                        CONF_UNANSWERED_REQUIRE_ALL,
-                        default=DEFAULT_UNANSWERED_REQUIRE_ALL,
-                    ): bool,
-                    vol.Optional(CONF_HIDE_DECLINED, default=False): bool,
-                    vol.Optional(
-                        CONF_HIDE_DECLINED_REQUIRE_ALL,
-                        default=DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
-                    ): bool,
-                    vol.Optional(CONF_STRIP_EMOJI, default=DEFAULT_STRIP_EMOJI): bool,
-                    vol.Optional(
-                        CONF_STRIP_DESCRIPTION_EMOJI,
-                        default=DEFAULT_STRIP_DESCRIPTION_EMOJI,
-                    ): bool,
-                    vol.Optional(
-                        CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
-                        default=DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
-                    ): bool,
+                    **_options_schema_fields(),
                 }
             ),
         )
@@ -178,46 +176,9 @@ class SpondCalendarOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
-        opts = self._config_entry.options
-
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
-                {
-                    vol.Optional(CONF_INCLUDE_PLANNED, default=opts.get(CONF_INCLUDE_PLANNED, False)): bool,
-                    vol.Optional(CONF_SHOW_UNANSWERED_INDICATOR, default=opts.get(CONF_SHOW_UNANSWERED_INDICATOR, True)): bool,
-                    vol.Optional(CONF_UNANSWERED_PREFIX, default=opts.get(CONF_UNANSWERED_PREFIX, DEFAULT_UNANSWERED_PREFIX)): str,
-                    vol.Optional(
-                        CONF_UNANSWERED_REQUIRE_ALL,
-                        default=opts.get(
-                            CONF_UNANSWERED_REQUIRE_ALL, DEFAULT_UNANSWERED_REQUIRE_ALL
-                        ),
-                    ): bool,
-                    vol.Optional(CONF_HIDE_DECLINED, default=opts.get(CONF_HIDE_DECLINED, False)): bool,
-                    vol.Optional(
-                        CONF_HIDE_DECLINED_REQUIRE_ALL,
-                        default=opts.get(
-                            CONF_HIDE_DECLINED_REQUIRE_ALL,
-                            DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_STRIP_EMOJI,
-                        default=opts.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI),
-                    ): bool,
-                    vol.Optional(
-                        CONF_STRIP_DESCRIPTION_EMOJI,
-                        default=opts.get(
-                            CONF_STRIP_DESCRIPTION_EMOJI, DEFAULT_STRIP_DESCRIPTION_EMOJI
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
-                        default=opts.get(
-                            CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
-                            DEFAULT_USE_MEETUP_TIME_AS_DESCRIPTION,
-                        ),
-                    ): bool,
-                }
+                _options_schema_fields(self._config_entry.options)
             ),
         )
