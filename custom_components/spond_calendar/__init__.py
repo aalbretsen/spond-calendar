@@ -13,6 +13,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     CONF_GROUP_ID,
+    CONF_HIDE_CANCELLED,
     CONF_HIDE_DECLINED,
     CONF_HIDE_DECLINED_REQUIRE_ALL,
     CONF_INCLUDE_PLANNED,
@@ -26,6 +27,7 @@ from .const import (
     CONF_USE_MEETUP_TIME_AS_DESCRIPTION,
     DEFAULT_DAYS_AHEAD,
     DEFAULT_DAYS_BACK,
+    DEFAULT_HIDE_CANCELLED,
     DEFAULT_HIDE_DECLINED,
     DEFAULT_HIDE_DECLINED_REQUIRE_ALL,
     DEFAULT_INCLUDE_PLANNED,
@@ -90,6 +92,12 @@ class SpondCoordinator(DataUpdateCoordinator[list[dict[str, Any]]]):
     def hide_declined_require_all(self) -> bool:
         return self._entry.options.get(
             CONF_HIDE_DECLINED_REQUIRE_ALL, DEFAULT_HIDE_DECLINED_REQUIRE_ALL
+        )
+
+    @property
+    def hide_cancelled(self) -> bool:
+        return self._entry.options.get(
+            CONF_HIDE_CANCELLED, DEFAULT_HIDE_CANCELLED
         )
 
     @property

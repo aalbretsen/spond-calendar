@@ -129,6 +129,11 @@ def _invites_sent(raw: dict[str, Any]) -> bool:
         return True
 
 
+def _is_cancelled(raw: dict[str, Any]) -> bool:
+    """Return True when the organizer has cancelled/aborted the event."""
+    return bool(raw.get("cancelled"))
+
+
 def _get_rsvp_statuses(raw: dict[str, Any], person_ids: list[str]) -> list[str]:
     if not person_ids:
         return []
@@ -246,6 +251,8 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
         )
 
     def _process_raw(self, raw: dict[str, Any]) -> CalendarEvent | None:
+        if self.coordinator.hide_cancelled and _is_cancelled(raw):
+            return None
         statuses = (
             _get_rsvp_statuses(raw, self.coordinator.my_person_ids)
             if _invites_sent(raw)

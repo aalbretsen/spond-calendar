@@ -22,6 +22,7 @@ Built on top of the excellent [Olen/Spond](https://github.com/Olen/Spond) unoffi
 * **Event details** — summary, start/end times, description, and location are all mapped.
 * **Unanswered invite indicator** — open invites you haven't responded to are prefixed with a configurable marker (default: `❓ `) so they stand out in your calendar.
 * **Hide declined events** — optionally suppress events you've already declined.
+* **Hide cancelled events** — optionally suppress events the organizer has cancelled.
 * **Strip emoji** — optionally remove emoji characters from event titles and/or event descriptions for cleaner calendar text.
 * **Meet-up time as description** — for events with a meet-up time (e.g. matches), optionally replace the event description with a short note (localized to Norwegian or English based on your Home Assistant language) like `Oppmøte 30 minutter før, kl 16:30` / `Meet 30 minutes before, at 16:30`.
 
@@ -46,7 +47,7 @@ Built on top of the excellent [Olen/Spond](https://github.com/Olen/Spond) unoffi
 2. Search for **Spond Calendar**.
 3. Enter your Spond email and password.
 4. Select the group you want to expose as a calendar.
-5. Configure options (unanswered indicator, hide declined events).
+5. Configure options (unanswered indicator, hide declined events, hide cancelled events).
 6. Done — the calendar entity appears as `calendar.spond_<group_name>`.
 
 To add more groups, repeat the process.
@@ -63,6 +64,7 @@ To add more groups, repeat the process.
 | Prefix for unanswered events | Text prepended to event title when invite is open |
 | Hide declined events | Suppress events you have declined |
 | Only hide when all represented members declined | When you represent multiple members, require every one to have declined before hiding |
+| Hide cancelled events | Suppress events the organizer has cancelled |
 | Only mark unanswered when all represented members are unanswered | When you represent multiple members, require every one to be unanswered before marking |
 | Remove emoji from event title | Strip emoji characters from the event title |
 | Remove emoji from event description | Strip emoji characters from the event description |
@@ -86,6 +88,7 @@ Spond Cloud API
            │  • Checks RSVP status (accepted / declined / unanswered)
            │  • Applies unanswered-invite prefix to event title
            │  • Optionally hides declined events
+           │  • Optionally hides cancelled events
            ▼
    HA Calendar dashboard, automations, triggers
 ```
