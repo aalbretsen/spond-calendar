@@ -5,9 +5,14 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-
-from homeassistant import config_entries
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
+from homeassistant.core import callback
+from spond import spond as spond_module
 
 from .const import (
     CONF_GROUP_ID,
@@ -73,7 +78,9 @@ _OPTION_TYPES: dict[str, type] = {
 }
 
 
-def _options_schema_fields(current: dict[str, Any] | None = None) -> dict[vol.Marker, type]:
+def _options_schema_fields(
+    current: dict[str, Any] | None = None,
+) -> dict[vol.Marker, type]:
     current = current or {}
     return {
         vol.Optional(key, default=current.get(key, default)): _OPTION_TYPES[key]
@@ -81,7 +88,7 @@ def _options_schema_fields(current: dict[str, Any] | None = None) -> dict[vol.Ma
     }
 
 
-class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class SpondCalendarConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
@@ -92,7 +99,7 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -100,7 +107,7 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._password = user_input[CONF_SPOND_PASSWORD]
             try:
                 self._groups = await self._fetch_groups(self._email, self._password)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 _LOGGER.exception("Failed to connect to Spond")
                 errors["base"] = "cannot_connect"
             else:
@@ -117,7 +124,7 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_select_group(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         if user_input is not None:
             group_id = user_input[CONF_GROUP_ID]
             group_name = next(
@@ -130,7 +137,7 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             options = {k: v for k, v in user_input.items() if k != CONF_GROUP_ID}
 
             return self.async_create_entry(
-                title=f"Spond – {group_name}",
+                title=f"Spond – {group_name}",  # noqa: RUF001
                 data={
                     CONF_SPOND_EMAIL: self._email,
                     CONF_SPOND_PASSWORD: self._password,
@@ -153,14 +160,14 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     @staticmethod
+    @callback
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
+        config_entry: ConfigEntry,
     ) -> SpondCalendarOptionsFlow:
-        return SpondCalendarOptionsFlow(config_entry)
+        return SpondCalendarOptionsFlow()
 
     @staticmethod
     async def _fetch_groups(email: str, password: str) -> list[dict[str, Any]]:
-        from spond import spond as spond_module  # noqa: PLC0415
         client = spond_module.Spond(username=email, password=password)
         try:
             groups = await client.get_groups()
@@ -169,20 +176,17 @@ class SpondCalendarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await client.clientsession.close()
 
 
-class SpondCalendarOptionsFlow(config_entries.OptionsFlow):
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self._config_entry = config_entry
+class SpondCalendarOptionsFlow(OptionsFlowWithReload):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         if user_input is not None:
             return self.async_create_entry(data=user_input)
 
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
-                _options_schema_fields(self._config_entry.options)
+                _options_schema_fields(self.config_entry.options)
             ),
         )

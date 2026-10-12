@@ -3,18 +3,17 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from . import SpondCoordinator
 from .const import CONF_GROUP_ID, CONF_GROUP_NAME, DOMAIN
+from .coordinator import SpondCalendarConfigEntry, SpondCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,7 +103,7 @@ def _meetup_description(
 def _parse_dt(value: str) -> datetime:
     dt = datetime.fromisoformat(value)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     return dt
 
 
@@ -124,7 +123,7 @@ def _invites_sent(raw: dict[str, Any]) -> bool:
     if not invite_time:
         return True
     try:
-        return _parse_dt(invite_time) <= datetime.now(tz=timezone.utc)
+        return _parse_dt(invite_time) <= datetime.now(tz=UTC)
     except (ValueError, TypeError):
         return True
 
@@ -190,27 +189,26 @@ def _parse_event(
             location=_extract_location(raw.get("location")),
             uid=raw.get("id"),
         )
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.debug("Failed to parse Spond event: %s", raw, exc_info=True)
         return None
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    entry: SpondCalendarConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    coordinator: SpondCoordinator = entry.runtime_data
-    async_add_entities(
-        [SpondCalendarEntity(coordinator, entry)], update_before_add=False
-    )
+    async_add_entities([SpondCalendarEntity(entry.runtime_data, entry)])
 
 
 class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator: SpondCoordinator, entry: ConfigEntry) -> None:
+    def __init__(
+        self, coordinator: SpondCoordinator, entry: SpondCalendarConfigEntry
+    ) -> None:
         super().__init__(coordinator)
         group_id: str = entry.data[CONF_GROUP_ID]
         group_name: str = entry.data.get(CONF_GROUP_NAME, group_id)
@@ -277,7 +275,7 @@ class SpondCalendarEntity(CoordinatorEntity[SpondCoordinator], CalendarEntity):
     def event(self) -> CalendarEvent | None:
         if not self.coordinator.data:
             return None
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         for raw in self.coordinator.data:
             event = self._process_raw(raw)
             if event and event.start <= now <= event.end:

@@ -26,7 +26,7 @@
           "use_meetup_time_as_description": "Replace description with meet-up time"
         },
         "data_description": {
-          "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite",
+          "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite.",
           "unanswered_require_all": "If you represent multiple members (yourself and/or children you are a guardian for), enable to require all of them to be unanswered before marking. When off, a single unanswered member is enough.",
           "hide_declined_require_all": "If you represent multiple members, enable to require all of them to have declined before hiding. When off, a single decline is enough to hide the event.",
           "hide_cancelled": "Hide events that have been cancelled by the organizer.",
@@ -61,7 +61,7 @@
           "use_meetup_time_as_description": "Replace description with meet-up time"
         },
         "data_description": {
-          "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite",
+          "unanswered_prefix": "Text prepended to the event title when you have an open, unanswered invite.",
           "unanswered_require_all": "If you represent multiple members (yourself and/or children you are a guardian for), enable to require all of them to be unanswered before marking. When off, a single unanswered member is enough.",
           "hide_declined_require_all": "If you represent multiple members, enable to require all of them to have declined before hiding. When off, a single decline is enough to hide the event.",
           "hide_cancelled": "Hide events that have been cancelled by the organizer.",

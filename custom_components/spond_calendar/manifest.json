@@ -5,8 +5,9 @@
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/aalbretsen/spond-calendar",
+  "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/aalbretsen/spond-calendar/issues",
-  "requirements": ["spond>=1.2.0"],
+  "requirements": ["spond==1.2.1"],
   "version": "1.1.0"
 }

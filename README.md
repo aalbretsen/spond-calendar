@@ -1,4 +1,3 @@
-
 # Spond Calendar for Home Assistant
 [![Spond Calendar Logo](https://github.com/aalbretsen/spond-calendar/blob/main/custom_components/spond_calendar/brand/logo.png)](https://github.com/aalbretsen/spond-calendar)
 
@@ -17,7 +16,7 @@ Built on top of the excellent [Olen/Spond](https://github.com/Olen/Spond) unoffi
 * **UI-based setup** — enter your Spond credentials, pick a group from a dropdown, done.
 * **Native calendar entity** — shows up in the Calendar dashboard, calendar cards, and works with calendar automations/triggers.
 * **Polling** — refreshes events every 15 minutes.
-* **Event window** — fetches 30 days of history and 90 days ahead.
+* **Event window** — fetches 14 days of history and 90 days ahead.
 * **Multiple groups** — add the integration once per group; each gets its own calendar entity.
 * **Event details** — summary, start/end times, description, and location are all mapped.
 * **Unanswered invite indicator** — open invites you haven't responded to are prefixed with a configurable marker (default: `❓ `) so they stand out in your calendar.
@@ -31,8 +30,8 @@ Built on top of the excellent [Olen/Spond](https://github.com/Olen/Spond) unoffi
 ### Via HACS (recommended)
 
 1. Open HACS in Home Assistant.
-2. Go to **Integrations** → three-dot menu → **Custom repositories**.
-3. Add the repository URL and select category **Integration**.
+2. Open the three-dot menu → **Custom repositories**.
+3. Add `https://github.com/aalbretsen/spond-calendar` and select type **Integration**.
 4. Search for **Spond Calendar** and install.
 5. Restart Home Assistant.
 
@@ -95,11 +94,11 @@ Spond Cloud API
 
 ## Dependencies
 
-This integration depends on the [spond](https://pypi.org/project/spond/) library (≥ 1.2.0), which is installed automatically by Home Assistant.
+This integration depends on the [spond](https://pypi.org/project/spond/) library (pinned to 1.2.1 in `manifest.json`), which is installed automatically by Home Assistant.
 
 ## Home Assistant version requirement
 
-This integration requires **Home Assistant 2026.3.0 or newer** in order to display the integration icon correctly in the Settings → Integrations UI. Older HA versions will still work, but will show a placeholder icon.
+This integration requires **Home Assistant 2026.3.0 or newer**. It ships its own brand images in `custom_components/spond_calendar/brand/`, which Home Assistant supports from 2026.3.
 
 ## Disclaimer
 
@@ -112,4 +111,4 @@ This integration uses **unofficial, reverse-engineered APIs**. Spond does not of
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
